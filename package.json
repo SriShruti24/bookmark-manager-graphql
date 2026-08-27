@@ -24,5 +24,8 @@
     "eslint": "^9.9.1",
     "prisma": "^5.19.0",
     "typescript": "^5.5.4"
+  },
+  "prisma": {
+    "seed": "bun run prisma/seed.ts"
   }
 }
