@@ -1,0 +1,27 @@
+{
+  "name": "bookmark-manager-graphql",
+  "version": "1.0.0",
+  "description": "GraphQL Bookmark Manager take-home assignment",
+  "main": "src/server.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "test": "bun test",
+    "gendb": "prisma generate",
+    "sanity": "bun run lint && bun run typecheck && bun run test"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.19.0",
+    "graphql": "^16.9.0",
+    "graphql-yoga": "^5.7.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
+    "eslint": "^9.9.1",
+    "prisma": "^5.19.0",
+    "typescript": "^5.5.4"
+  }
+}
