@@ -44,6 +44,7 @@ export const resolvers = {
   },
 
   Folder: {
+    createdAt: (parent: { createdAt: Date }) => parent.createdAt.toISOString(),
     bookmarks: async (parent: { id: string }) => {
       return prisma.bookmark.findMany({
         where: { folderId: parent.id },
@@ -56,6 +57,7 @@ export const resolvers = {
   },
 
   Bookmark: {
+    createdAt: (parent: { createdAt: Date }) => parent.createdAt.toISOString(),
     folder: async (parent: { folderId: string }) => {
       const folder = await prisma.folder.findUnique({
         where: { id: parent.folderId }
