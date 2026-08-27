@@ -22,7 +22,7 @@ export function validateAndTrimUrl(url: string): string {
   const trimmed = url.trim();
   try {
     new URL(trimmed);
-  } catch (error) {
+  } catch {
     throw new GraphQLError("Invalid bookmark URL", {
       extensions: { code: "BAD_USER_INPUT" }
     });

@@ -1,4 +1,4 @@
-import { createYoga } from "graphql-yoga";
+import { createYoga, createSchema } from "graphql-yoga";
 import { resolvers } from "./graphql/resolvers.ts";
 import { prisma } from "./lib/prisma.ts";
 
@@ -6,10 +6,10 @@ import { prisma } from "./lib/prisma.ts";
 const typeDefs = await Bun.file("./src/graphql/schema.graphql").text();
 
 const yoga = createYoga({
-  schema: {
+  schema: createSchema({
     typeDefs,
     resolvers
-  },
+  }),
   context: () => ({
     prisma
   })
@@ -17,7 +17,7 @@ const yoga = createYoga({
 
 const server = Bun.serve({
   port: 4000,
-  fetch: (request) => yoga.fetch(request)
+  fetch: (request: Request) => yoga.fetch(request)
 });
 
 console.log(`🚀 Server is running on http://${server.hostname}:${server.port}/graphql`);

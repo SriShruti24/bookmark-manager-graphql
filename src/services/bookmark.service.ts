@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.ts";
 import { validateAndTrimTitle, validateAndTrimUrl } from "../validation/bookmark.validation.ts";
 import { GraphQLError } from "graphql";
+import { Prisma } from "@prisma/client";
 
 export interface Bookmark {
   id: string;
@@ -49,7 +50,7 @@ export function deserializeCursor(cursorStr: string): { createdAt: Date; id: str
       createdAt: new Date(payload.createdAt),
       id: payload.id
     };
-  } catch (err) {
+  } catch {
     throw new GraphQLError("Invalid cursor format", {
       extensions: { code: "BAD_USER_INPUT" }
     });
@@ -65,7 +66,7 @@ export class BookmarkService {
     const limit = options.take !== undefined ? Math.max(1, options.take) : 20;
 
     // Build query conditions
-    const where: any = {};
+    const where: Prisma.BookmarkWhereInput = {};
 
     if (folderId) {
       where.folderId = folderId;
@@ -163,7 +164,7 @@ export class BookmarkService {
       });
     }
 
-    const updateData: any = {};
+    const updateData: Prisma.BookmarkUpdateInput = {};
 
     if (data.title !== undefined) {
       updateData.title = validateAndTrimTitle(data.title);
