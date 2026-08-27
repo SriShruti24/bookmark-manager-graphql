@@ -1,0 +1,215 @@
+# Demo GraphQL Operations
+#
+# Endpoint: http://localhost:4000/graphql
+#
+# Run in order. Wherever you see <FOLDER_ID> / <BOOKMARK_ID> / <CURSOR>,
+# copy the actual value returned by the previous step's response — IDs
+# are UUIDs generated at creation time and will differ on every run.
+#
+# Setup before recording:
+#   docker compose up -d
+#   bun install
+#   bun run gendb
+#   bunx prisma migrate dev
+#   bun run prisma/seed.ts   # loads Development / Learning / Resources folders
+#   bun run dev
+
+# ---------------------------------------------------------------------------
+# 1. Create folder
+# ---------------------------------------------------------------------------
+mutation CreateFolder {
+  createFolder(name: "Development") {
+    id
+    name
+    createdAt
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 2. Create bookmark (paste the folder id from step 1 as folderId)
+# ---------------------------------------------------------------------------
+mutation CreateBookmark {
+  createBookmark(
+    folderId: "<FOLDER_ID>"
+    title: "React Documentation"
+    url: "https://react.dev"
+    tags: ["react", "frontend", "docs"]
+  ) {
+    id
+    title
+    url
+    tags
+    folderId
+    createdAt
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 3. Get all folders
+# ---------------------------------------------------------------------------
+query GetFolders {
+  folders {
+    id
+    name
+    createdAt
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 4. Get one folder with nested bookmarks (folder -> bookmarks)
+# ---------------------------------------------------------------------------
+query GetFolderWithBookmarks {
+  folder(id: "<FOLDER_ID>") {
+    id
+    name
+    createdAt
+    bookmarks {
+      id
+      title
+      url
+      tags
+      folderId
+      createdAt
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 5. Search bookmarks by title (case-insensitive substring match)
+# ---------------------------------------------------------------------------
+query SearchBookmarks {
+  bookmarks(search: "GraphQL") {
+    nodes {
+      id
+      title
+      url
+      folderId
+    }
+    hasNextPage
+    nextCursor
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 6. Filter bookmarks by folder
+# ---------------------------------------------------------------------------
+query FilterByFolder {
+  bookmarks(folderId: "<FOLDER_ID>") {
+    nodes {
+      id
+      title
+      folderId
+    }
+    hasNextPage
+    nextCursor
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 7. Cursor pagination — page 1
+# The Development folder has 6 seeded bookmarks, so take: 5 forces a
+# second page. Copy nextCursor from the response into step 8.
+# ---------------------------------------------------------------------------
+query BookmarksPage1 {
+  bookmarks(take: 5) {
+    nodes {
+      id
+      title
+      createdAt
+    }
+    nextCursor
+    hasNextPage
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 8. Cursor pagination — page 2 (paste nextCursor from step 7)
+# Expect: 5 different bookmarks, no overlap with page 1, hasNextPage=false
+# ---------------------------------------------------------------------------
+query BookmarksPage2 {
+  bookmarks(take: 5, cursor: "<CURSOR>") {
+    nodes {
+      id
+      title
+      createdAt
+    }
+    nextCursor
+    hasNextPage
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 9. Update bookmark (partial update — only pass fields you want to change)
+# ---------------------------------------------------------------------------
+mutation UpdateBookmark {
+  updateBookmark(
+    id: "<BOOKMARK_ID>"
+    title: "React Documentation (Official)"
+    tags: ["react", "frontend", "official"]
+  ) {
+    id
+    title
+    url
+    tags
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 10. Move bookmark to a different folder
+# ---------------------------------------------------------------------------
+mutation MoveBookmark {
+  moveBookmark(id: "<BOOKMARK_ID>", folderId: "<DESTINATION_FOLDER_ID>") {
+    id
+    title
+    folderId
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 11. Delete bookmark, then verify it's gone
+# ---------------------------------------------------------------------------
+mutation DeleteBookmark {
+  deleteBookmark(id: "<BOOKMARK_ID>") {
+    id
+    title
+  }
+}
+
+query VerifyDeleted {
+  bookmarks(search: "React") {
+    nodes {
+      id
+      title
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 12. Validation — empty / whitespace-only title
+# Expect a GraphQL error: "Bookmark title cannot be empty" (not HTTP 500)
+# ---------------------------------------------------------------------------
+mutation InvalidEmptyTitle {
+  createBookmark(folderId: "<FOLDER_ID>", title: "   ", url: "https://example.com") {
+    id
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 13. Validation — malformed URL
+# Expect a GraphQL error: "Invalid bookmark URL" (not HTTP 500)
+# ---------------------------------------------------------------------------
+mutation InvalidUrl {
+  createBookmark(folderId: "<FOLDER_ID>", title: "Bad URL Example", url: "not-a-valid-url") {
+    id
+  }
+}
+
+# ---------------------------------------------------------------------------
+# 14. Validation — move to a nonexistent destination folder
+# Expect a GraphQL error: "Destination folder with ID \"...\" not found"
+# ---------------------------------------------------------------------------
+mutation MoveToMissingFolder {
+  moveBookmark(id: "<BOOKMARK_ID>", folderId: "does-not-exist") {
+    id
+  }
+}
